@@ -13,9 +13,9 @@ mongoose.connect(
 const roomRoutes = require("./routes/Room");
 app.use(roomRoutes);
 
-// app.all("*", (req, res) => {
-//   res.send("all routes");
-// });
+app.all("*", (req, res) => {
+  res.send("all routes");
+});
 
 app.listen(3000, () => {
   console.log("Server started");
