@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-// Schemas
+// Room
 const Room = mongoose.model("Room", {
   title: String,
   description: String,
@@ -21,6 +21,28 @@ const Room = mongoose.model("Room", {
   }
 });
 
+// User
+const User = mongoose.model("User", {
+  account: {
+    username: String,
+    biography: String
+  },
+  email: {
+    type: String,
+    select: false
+  },
+  token: String,
+  hash: {
+    type: String,
+    select: false
+  },
+  salt: {
+    type: String,
+    select: false
+  }
+});
+
 module.exports = {
-  room: Room
+  room: Room,
+  user: User
 };

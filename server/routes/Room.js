@@ -14,10 +14,7 @@ const Room = models.room;
     @params `req: {Object}`
 */
 router.post("/room/publish", async (req, res) => {
-  console.log("post");
-
   try {
-    console.log("Post publish Room");
     const room = await Room.findOne({ title: req.body.title });
     if (!!room) {
       rest.sendError(res, "Room already exist");
@@ -46,7 +43,7 @@ router.post("/room/publish", async (req, res) => {
 router.get("/rooms", async (req, res) => {
   try {
     let isParams = rest.isQueryParams(req);
-    let rooms;
+    let reqResult;
     if (isParams) {
       let city = new RegExp(`^${req.query.city}`);
       let priceMin = Number(req.query.priceMin);
@@ -57,6 +54,7 @@ router.get("/rooms", async (req, res) => {
       let offset = 0;
       let options = [];
 
+      // filter Pagination
       if (currentPage) {
         itemPerPage = 2;
         offset = currentPage * itemPerPage - itemPerPage;
@@ -89,12 +87,12 @@ router.get("/rooms", async (req, res) => {
           rooms: [{ $skip: offset }, { $limit: itemPerPage }]
         }
       });
+      // console.dir(options, { depth: null });
 
-      console.dir(options, { depth: null });
-      rooms = await Room.aggregate(options);
-    } else rooms = await Room.find();
+      reqResult = await Room.aggregate(options);
+    } else reqResult = await Room.find();
 
-    res.json(rooms);
+    res.json(reqResult);
   } catch (error) {
     rest.sendError(res, error.message);
   }
@@ -104,7 +102,6 @@ router.get("/rooms", async (req, res) => {
 // @param `req: {Object}`
 router.get("/room/get/:id", async (req, res) => {
   try {
-    console.log("Get Room By `id`");
     let room = await Room.findById(req.params.id);
     res.json({ room: room });
   } catch (error) {
@@ -118,7 +115,6 @@ router.post("/room/update", async (req, res) => {});
 // **Delete**
 router.get("/room/delete/:id", async (req, res) => {
   try {
-    console.log("Get Delete by `id`");
     await Room.deleteOne({ _id: req.params.id });
   } catch (error) {
     rest.sendError(res, error.message);
