@@ -76,6 +76,7 @@ router.post("/user/log_in", async (req, res) => {
           token: user.token,
           account: user.account
         };
+        req.session.logged_user = uniqid();
       } else
         return rest.sendError(res, "connection refused: wrong password", 401);
     } else return rest.sendError(res, "connection refused: unknown user", 401);
@@ -125,7 +126,9 @@ router.get("/user/:id", async (req, res) => {
 });
 
 // **Update**
-router.post("/user/edit", async (req, res) => {});
+router.post("/user/edit/account", async (req, res) => {
+  return res.json(req.session);
+});
 
 // **Delete**
 router.get("/user/delete/:id", async (req, res) => {
