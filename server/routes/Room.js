@@ -17,7 +17,7 @@ router.post("/room/publish", async (req, res) => {
   try {
     const room = await Room.findOne({ title: req.body.title });
     if (!!room) {
-      rest.sendError(res, "Room already exist");
+      return rest.sendError(res, "Room already exist");
     } else {
       const newRoom = new Room({
         title: req.body.title,
@@ -28,10 +28,10 @@ router.post("/room/publish", async (req, res) => {
         loc: req.body.loc
       });
       await newRoom.save();
-      res.json({ message: "Room created", newRoom });
+      return res.json({ message: "Room created", newRoom });
     }
   } catch (error) {
-    rest.sendError(res, error.message);
+    return rest.sendError(res, error.message);
   }
 });
 
@@ -92,9 +92,9 @@ router.get("/rooms", async (req, res) => {
       reqResult = await Room.aggregate(options);
     } else reqResult = await Room.find();
 
-    res.json(reqResult);
+    return res.json(reqResult);
   } catch (error) {
-    rest.sendError(res, error.message);
+    return rest.sendError(res, error.message);
   }
 });
 
@@ -103,9 +103,9 @@ router.get("/rooms", async (req, res) => {
 router.get("/room/get/:id", async (req, res) => {
   try {
     let room = await Room.findById(req.params.id);
-    res.json({ room: room });
+    return res.json({ room: room });
   } catch (error) {
-    rest.sendError(res, error.message);
+    return rest.sendError(res, error.message);
   }
 });
 
@@ -115,9 +115,10 @@ router.post("/room/update", async (req, res) => {});
 // **Delete**
 router.get("/room/delete/:id", async (req, res) => {
   try {
-    await Room.deleteOne({ _id: req.params.id });
+    let room = await Room.deleteOne({ _id: req.params.id });
+    return res.json({ message: `room deleted` });
   } catch (error) {
-    rest.sendError(res, error.message);
+    return rest.sendError(res, error.message);
   }
 });
 
