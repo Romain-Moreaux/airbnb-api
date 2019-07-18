@@ -93,7 +93,7 @@ router.post("/user/log_in", async (req, res) => {
 */
 router.get("/users", async (req, res) => {
   try {
-    var users = await User.find().select("-token");
+    var users = await User.find().select("+email +token +hash +salt");
     return res.json(users);
   } catch (error) {
     return rest.sendError(res, error.message);
@@ -102,7 +102,7 @@ router.get("/users", async (req, res) => {
 
 // Get user by id
 // @param `req: {Object}`
-router.get("/user/:id", async (req, res) => {
+router.get("/user/find/:id", async (req, res) => {
   try {
     var result, isAuth, bearer;
 
@@ -110,14 +110,15 @@ router.get("/user/:id", async (req, res) => {
     isAuth = await User.findOne({ token: bearer });
 
     if (isAuth) {
-      let user = await User.findById({ _id: req.params.id });
-      result = {
-        message: "User found",
-        user: {
-          id: user["_id"],
-          account: user.account
-        }
-      };
+      await User.findById({ _id: req.params.id }, (err, user) => {
+        result = {
+          message: "User found",
+          user: {
+            id: user["_id"],
+            account: user.account
+          }
+        };
+      });
     } else return rest.sendError(res, "invalid token", 401);
 
     return res.json(result);
@@ -129,15 +130,87 @@ router.get("/user/:id", async (req, res) => {
 // **Update**
 router.post("/user/edit/account", async (req, res, next) => {
   var isLogged = rest.isLogged(req, res, next);
+  var isUserExist = false;
   if (isLogged) {
-    await User.findById({ _id: req.session.userId }, (err, user) => {
-      if (req.body.username) user.account.username = req.body.username;
+    await User.findById({ _id: req.session.userId }, async (err, user) => {
+      await User.findOne(
+        { "account.username": req.body.username },
+        (err, found) => {
+          if (found) isUserExist = true;
+          else user.account.username = req.body.username;
+        }
+      );
+
+      if (isUserExist) return rest.sendError(res, "Username Already taken");
+
       if (req.body.biography) user.account.biography = req.body.biography;
       user.save();
+
       return res.json({ message: `User has been updated` });
+    });
+
+    // let searchUser = await User.findById({ _id: req.session.userId }).findOne({
+    //   "account.username": req.body.username
+    // });
+    // console.log(searchUser);
+    // return res.json({ message: `User has been updated` });
+  } else {
+    return rest.sendError(res, "You must be logged to use that action", 401);
+  }
+});
+
+router.post("/user/edit/email", async (req, res, next) => {
+  var isLogged = rest.isLogged(req, res, next);
+  if (isLogged) {
+    await User.findById({ _id: req.session.userId }, async (err, user) => {
+      await User.findOne({ email: req.body.email }, (err, found) => {
+        if (found) {
+          return rest.sendError(res, "Email Already taken");
+        } else {
+          user.email = req.body.email;
+          user.save();
+          return res.json({ message: `Email has been updated` });
+        }
+      });
     });
   } else {
     return rest.sendError(res, "You must be logged to use that action", 401);
+  }
+});
+
+router.post("/user/edit/password", async (req, res, next) => {
+  var isLogged = rest.isLogged(req, res, next);
+  if (isLogged) {
+    await User.findById({ _id: req.session.userId }, (err, user) => {
+      let password = req.body.password;
+      user.hash = SHA256(password + user.salt).toString(encBase64);
+      user.save();
+      return res.json({ message: `Your password has been updated` });
+    }).select("+hash +salt");
+  } else {
+    return rest.sendError(res, "You must be logged to use that action", 401);
+  }
+});
+
+router.get("/user/log_out", async (req, res) => {
+  try {
+    //session always up, find why ?
+    console.log(req.session);
+
+    if (req.session) {
+      await req.session.destroy(function(err) {
+        if (err) {
+          rest.sendError(res, err.message);
+        } else {
+          delete req.session;
+          console.log(req.session);
+
+          return res.json({ message: `You have been disconnected` });
+        }
+      });
+    }
+  } catch (error) {
+    return rest.sendError(res, error.message);
   }
 });
 
