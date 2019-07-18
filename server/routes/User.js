@@ -19,7 +19,7 @@ const User = models.user;
 */
 router.post("/user/sign_up", async (req, res) => {
   try {
-    const user = await User.findOne({
+    var user = await User.findOne({
       $or: [
         { "account.username": req.body.username },
         { email: req.body.email }
@@ -59,7 +59,7 @@ router.post("/user/sign_up", async (req, res) => {
 */
 router.post("/user/log_in", async (req, res) => {
   try {
-    let user, result;
+    var user, result;
     user = await User.findOne({
       $or: [
         { email: req.body.email },
@@ -76,7 +76,7 @@ router.post("/user/log_in", async (req, res) => {
           token: user.token,
           account: user.account
         };
-        req.session.logged_user = uniqid();
+        req.session.userId = user["_id"];
       } else
         return rest.sendError(res, "connection refused: wrong password", 401);
     } else return rest.sendError(res, "connection refused: unknown user", 401);
@@ -93,7 +93,7 @@ router.post("/user/log_in", async (req, res) => {
 */
 router.get("/users", async (req, res) => {
   try {
-    users = await User.find().select("-token");
+    var users = await User.find().select("-token");
     return res.json(users);
   } catch (error) {
     return rest.sendError(res, error.message);
@@ -104,8 +104,9 @@ router.get("/users", async (req, res) => {
 // @param `req: {Object}`
 router.get("/user/:id", async (req, res) => {
   try {
-    let result, isAuth;
-    let bearer = req.headers.authorization.replace("Bearer ", "");
+    var result, isAuth, bearer;
+
+    bearer = req.headers.authorization.replace("Bearer ", "");
     isAuth = await User.findOne({ token: bearer });
 
     if (isAuth) {
@@ -126,8 +127,18 @@ router.get("/user/:id", async (req, res) => {
 });
 
 // **Update**
-router.post("/user/edit/account", async (req, res) => {
-  return res.json(req.session);
+router.post("/user/edit/account", async (req, res, next) => {
+  var isLogged = rest.isLogged(req, res, next);
+  if (isLogged) {
+    await User.findById({ _id: req.session.userId }, (err, user) => {
+      if (req.body.username) user.account.username = req.body.username;
+      if (req.body.biography) user.account.biography = req.body.biography;
+      user.save();
+      return res.json({ message: `User has been updated` });
+    });
+  } else {
+    return rest.sendError(res, "You must be logged to use that action", 401);
+  }
 });
 
 // **Delete**
