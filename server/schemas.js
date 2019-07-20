@@ -24,12 +24,16 @@ const Room = mongoose.model("Room", {
 // User
 const User = mongoose.model("User", {
   account: {
-    username: String,
+    username: {
+      type: String,
+      unique: true
+    },
     biography: String
   },
   email: {
     type: String,
-    select: false
+    select: false,
+    unique: true
   },
   token: String,
   hash: {

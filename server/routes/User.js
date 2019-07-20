@@ -19,36 +19,28 @@ const User = models.user;
 */
 router.post("/user/sign_up", async (req, res) => {
   try {
-    var user = await User.findOne({
-      $or: [
-        { "account.username": req.body.username },
-        { email: req.body.email }
-      ]
+    let salt = uniqid();
+    let newUser = new User({
+      account: {
+        username: req.body.username,
+        biography: req.body.biography
+      },
+      email: req.body.email,
+      token: uniqid(),
+      salt: salt,
+      hash: SHA256(req.body.password + salt).toString(encBase64)
     });
-    if (!!user) {
-      return rest.sendError(res, "User already exist");
-    } else {
-      let password = req.body.password;
-      let salt = uniqid();
-      let token = uniqid();
-      const newUser = new User({
-        account: {
-          username: req.body.username,
-          biography: req.body.biography
-        },
-        email: req.body.email,
-        token: token,
-        salt: salt,
-        hash: SHA256(password + salt).toString(encBase64)
-      });
-      await newUser.save();
+    newUser.save((err, user) => {
+      if (err) {
+        return rest.sendError(res, "The username or the email is already used");
+      }
       return res.json({
         message: "User created",
         id: newUser["_id"],
         token: newUser.token,
         account: newUser.account
       });
-    }
+    });
   } catch (error) {
     return rest.sendError(res, error.message);
   }
@@ -59,28 +51,41 @@ router.post("/user/sign_up", async (req, res) => {
 */
 router.post("/user/log_in", async (req, res) => {
   try {
-    var user, result;
-    user = await User.findOne({
-      $or: [
-        { email: req.body.email },
-        { "account.username": req.body.username }
-      ]
-    }).select("+salt +hash");
-
-    if (user) {
-      let password = SHA256(req.body.password + user.salt).toString(encBase64);
-      if (password === user.hash) {
-        result = {
-          message: `connection granted: ${new Date().toUTCString()}`,
-          id: user["_id"],
-          token: user.token,
-          account: user.account
-        };
-      } else
-        return rest.sendError(res, "connection refused: wrong password", 401);
-    } else return rest.sendError(res, "connection refused: unknown user", 401);
-
-    return res.json(result);
+    await User.findOne(
+      {
+        $or: [
+          { email: req.body.email },
+          { "account.username": req.body.username }
+        ]
+      },
+      (err, user) => {
+        if (user) {
+          let password = SHA256(req.body.password + user.salt).toString(
+            encBase64
+          );
+          if (password === user.hash) {
+            user.token = uniqid();
+            user.save((err, user) => {
+              if (err) {
+                return rest.sendError(res, err.message);
+              }
+              return res.json({
+                message: `connection granted: ${new Date().toUTCString()}`,
+                id: user["_id"],
+                token: user.token,
+                account: user.account
+              });
+            });
+          } else
+            return rest.sendError(
+              res,
+              "connection refused: wrong password",
+              401
+            );
+        } else
+          return rest.sendError(res, "connection refused: unknown user", 401);
+      }
+    ).select("+salt +hash");
   } catch (error) {
     return rest.sendError(res, error.message);
   }
@@ -118,16 +123,6 @@ router.get("/user/find/:id", isAuth, async (req, res, next) => {
     return rest.sendError(res, error.message);
   }
 });
-
-function isAuth(req, res, next) {
-  var bearer = req.headers.authorization.replace("Bearer ", "");
-  return User.findOne({ token: bearer }, (err, user) => {
-    if (user) {
-      req.user = user;
-      next();
-    } else rest.sendError(res, "invalid token", 401);
-  });
-}
 
 // **Update**
 router.post("/user/edit/account", isAuth, async (req, res, next) => {
@@ -182,23 +177,23 @@ router.post("/user/edit/password", isAuth, async (req, res, next) => {
   }
 });
 
-router.get("/user/log_out", async (req, res, next) => {
-  try {
-    if (req.session) {
-      await req.session.destroy(function(err) {
-        if (err) {
-          rest.sendError(res, err.message);
-        } else {
-          delete req.session;
-          console.log(req.session);
-          next();
-        }
-      });
-    }
-  } catch (error) {
-    return rest.sendError(res, error.message);
-  }
-});
+// router.get("/user/log_out", async (req, res, next) => {
+//   try {
+//     if (req.session) {
+//       await req.session.destroy(function(err) {
+//         if (err) {
+//           rest.sendError(res, err.message);
+//         } else {
+//           delete req.session;
+//           console.log(req.session);
+//           next();
+//         }
+//       });
+//     }
+//   } catch (error) {
+//     return rest.sendError(res, error.message);
+//   }
+// });
 
 // **Delete**
 router.get("/user/delete/:id", async (req, res) => {
@@ -209,12 +204,15 @@ router.get("/user/delete/:id", async (req, res) => {
   }
 });
 
-function isLogged(req, res, next) {
-  if (req.session && req.session.userId) {
-    next();
-  } else {
-    return rest.sendError(res, "You must be logged to use that action", 401);
-  }
+// Middlewares
+function isAuth(req, res, next) {
+  var bearer = req.headers.authorization.replace("Bearer ", "");
+  return User.findOne({ token: bearer }, (err, user) => {
+    if (user) {
+      req.user = user;
+      next();
+    } else rest.sendError(res, "invalid token", 401);
+  });
 }
 
 module.exports = router;
