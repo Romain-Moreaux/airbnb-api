@@ -1,18 +1,18 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const session = require("express-session");
+// const session = require("express-session");
 
 const app = express();
 
 app.use(bodyParser.json());
-app.use(
-  session({
-    secret: "keyboard cat",
-    resave: true,
-    saveUninitialized: false
-  })
-);
+// app.use(
+//   session({
+//     secret: "keyboard cat",
+//     resave: true,
+//     saveUninitialized: false
+//   })
+// );
 
 mongoose.connect(
   process.env.MONGODB_URI || "mongodb://localhost:27017/airbnb-api",
