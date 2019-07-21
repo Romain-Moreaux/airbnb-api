@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
+mongoose.set("useCreateIndex", true);
 
-// Room
 const Room = mongoose.model("Room", {
   title: String,
   description: String,
@@ -21,7 +21,6 @@ const Room = mongoose.model("Room", {
   }
 });
 
-// User
 const User = mongoose.model("User", {
   account: {
     username: {
