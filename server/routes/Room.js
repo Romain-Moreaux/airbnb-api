@@ -15,21 +15,22 @@ const Room = models.room;
 */
 router.post("/room/publish", async (req, res) => {
   try {
-    const room = await Room.findOne({ title: req.body.title });
-    if (!!room) {
-      return rest.sendError(res, "Room already exist");
-    } else {
-      const newRoom = new Room({
-        title: req.body.title,
-        description: req.body.description,
-        photos: req.body.photos,
-        price: req.body.price,
-        city: req.body.city,
-        loc: req.body.loc
-      });
-      await newRoom.save();
-      return res.json({ message: "Room created", newRoom });
-    }
+    await Room.findOne({ title: req.body.title }, (err, room) => {
+      if (!!room) {
+        return rest.sendError(res, "Room already exist");
+      } else {
+        const newRoom = new Room({
+          title: req.body.title,
+          description: req.body.description,
+          photos: req.body.photos,
+          price: req.body.price,
+          city: req.body.city,
+          loc: req.body.loc
+        });
+        newRoom.save();
+        return res.json({ message: "Room created", newRoom });
+      }
+    });
   } catch (error) {
     return rest.sendError(res, error.message);
   }
@@ -102,8 +103,9 @@ router.get("/rooms", async (req, res) => {
 // @param `req: {Object}`
 router.get("/room/get/:id", async (req, res) => {
   try {
-    let room = await Room.findById(req.params.id);
-    return res.json({ room: room });
+    await Room.findById(req.params.id, (err, room) => {
+      return res.json({ room: room });
+    });
   } catch (error) {
     return rest.sendError(res, error.message);
   }
@@ -115,8 +117,9 @@ router.post("/room/update", async (req, res) => {});
 // **Delete**
 router.get("/room/delete/:id", async (req, res) => {
   try {
-    let room = await Room.deleteOne({ _id: req.params.id });
-    return res.json({ message: `room deleted` });
+    await Room.deleteOne({ _id: req.params.id }, (err, room) => {
+      return res.json({ message: `room deleted` });
+    });
   } catch (error) {
     return rest.sendError(res, error.message);
   }

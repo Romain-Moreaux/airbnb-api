@@ -97,8 +97,9 @@ router.post("/user/log_in", async (req, res) => {
 */
 router.get("/users", async (req, res) => {
   try {
-    var users = await User.find().select("+email +token +hash +salt");
-    return res.json(users);
+    await User.find((err, users) => {
+      return res.json(users);
+    }).select("+email +token +hash +salt");
   } catch (error) {
     return rest.sendError(res, error.message);
   }
