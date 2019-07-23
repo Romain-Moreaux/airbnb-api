@@ -1,0 +1,201 @@
+/*** Reset  ***/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+button {
+  background-color: transparent;
+  color: inherit;
+  border-width: 0;
+  padding: 0;
+  cursor: pointer;
+}
+figure {
+  margin: 0;
+}
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+ul,
+ol,
+dd {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+p {
+  margin: 0;
+}
+cite {
+  font-style: normal;
+}
+fieldset {
+  border-width: 0;
+  padding: 0;
+  margin: 0;
+}
+img {
+  max-width: 100%;
+}
+/*** Typography ***/
+html {
+  font-size: 62.5%; /*for using REM units*/
+  height: 100%;
+}
+body {
+  font-family: "Ubuntu", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #222;
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-weight: 800;
+}
+
+h1 {
+  font-size: 3.6rem;
+}
+h2 {
+  font-size: 2.65rem;
+}
+h3 {
+  font-size: 2.125rem;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 1.85rem;
+}
+
+:root {
+  --whitePipe: #f2f2f2;
+  --blueSideral: #293462;
+  --blueForest: #216583;
+  --greenWinter: #00818a;
+  --yellowFreeze: #f7be16;
+}
+
+body,
+#root,
+.page {
+  height: inherit;
+}
+
+.main-wrapper {
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 6rem;
+  padding-left: 6rem;
+  /* for edge cases: */
+  width: 100%;
+  max-width: 1480px;
+}
+
+.spaces-xs {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.spaces-sm {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.spaces-md {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+.spaces-lg {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  margin-top: 8rem;
+  margin-bottom: 8rem;
+}
+
+.page,
+.Header--container,
+.Header--headline,
+.Header--nav {
+  display: flex;
+}
+
+.page {
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/*** Page ***/
+.Header--container {
+  background: var(--blueSideral);
+  align-items: center;
+}
+.Header--headline {
+  align-items: center;
+  flex: 1;
+}
+.Header--headline-logo {
+  max-height: 80px;
+}
+.Header--headline-title {
+  color: var(--whitePipe);
+}
+
+.Header--nav {
+  flex: 2;
+  justify-content: center;
+}
+.Header--nav--link {
+  color: var(--whitePipe);
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  margin: 0 1rem;
+  padding: 0 1rem 1rem;
+  background-image: linear-gradient(#ffffff, #ffffff);
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 2px 2px;
+  transition: background 0.35s ease-in-out;
+}
+
+.Header--nav--link:hover {
+  background-size: 60px 2px;
+}
+
+.Footer--container {
+  background: var(--greenWinter);
+}
+
+.Footer--container h4 {
+  color: var(--whitePipe);
+  text-align: center;
+}
