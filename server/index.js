@@ -24,6 +24,6 @@ app.all("*", (req, res) => {
   res.send("all routes");
 });
 
-app.listen(3100, () => {
+app.listen(3000, () => {
   console.log("Server started");
 });
